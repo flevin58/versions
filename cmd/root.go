@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -35,11 +36,24 @@ var (
 	ftext bool
 	fedit bool
 	fcsv  string
+	fpath bool
 )
+
+func init() {
+	flag.BoolVar(&fedit, "e", false, "Edits the config file")
+	flag.BoolVar(&fpath, "p", false, "Shows the full path to the config file")
+	flag.StringVar(&fcsv, "c", "", "Outputs as CSV file with given name")
+	flag.Parse()
+}
 
 func Execute() {
 	if len(flag.Args()) > 0 {
 		log.Fatalf("error: no arguments expected")
+	}
+
+	if fpath {
+		fmt.Println(cfg.ConfigFile)
+		return
 	}
 
 	if fedit {
@@ -65,10 +79,4 @@ func Execute() {
 		return
 	}
 	model.ToTable()
-}
-
-func init() {
-	flag.BoolVar(&fedit, "e", false, "Edits the config file")
-	flag.StringVar(&fcsv, "c", "", "Outputs as CSV file with given name")
-	flag.Parse()
 }
