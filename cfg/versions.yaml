@@ -1,0 +1,29 @@
+editor: vim
+commands:
+  - name: vi
+    flag: --version
+    line: 1
+  - name: ffmpeg
+    flag: -version
+    line: 1
+  - name: git
+    flag: --version
+    line: 1
+  - name: pyenv
+    flag: --version
+    line: 1
+  - name: python
+    flag: --version
+    line: 1
+  - name: go
+    flag: version
+    line: 1
+  - name: zig
+    flag: version
+    line: 1
+  - name: make
+    flag: -version
+    line: 1
+  - name: zsh
+    flag: --version
+    line: 1
