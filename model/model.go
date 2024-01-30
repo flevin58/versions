@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -13,12 +14,20 @@ import (
 	"github.com/flevin58/versions/cfg"
 )
 
+type InstalledStatus int
+
+const (
+	homebrew = iota // Macos installer
+	scoop           // Windows installer
+	other
+	unavailable
+)
+
 type cmdData struct {
-	command  string
-	version  string
-	where    string
-	found    bool
-	homebrew bool
+	command   string
+	version   string
+	where     string
+	installed InstalledStatus
 }
 
 func (c *cmdData) Record() []string {
@@ -26,7 +35,7 @@ func (c *cmdData) Record() []string {
 }
 
 var (
-	cmdHeader cmdData = cmdData{"Command", "Version", "Where", false, false}
+	cmdHeader cmdData = cmdData{"Command", "Version", "Where", unavailable}
 	cmdList   []cmdData
 )
 
@@ -49,19 +58,32 @@ func Add(cmd cfg.Command) {
 	where, err := exec.LookPath(cmd.Name)
 	if err != nil {
 		data = cmdData{
-			found:    false,
-			homebrew: false,
-			command:  cmd.Name,
-			version:  "",
-			where:    "",
+			command:   cmd.Name,
+			version:   "",
+			where:     "",
+			installed: unavailable,
 		}
 	} else {
+		var inst InstalledStatus = other
+		switch runtime.GOOS {
+		case "windows":
+			winPrefix := os.ExpandEnv("$USERPROFILE\\scoop")
+			fmt.Println(where)
+			fmt.Println(winPrefix)
+			if strings.HasPrefix(where, winPrefix) {
+				inst = scoop
+			}
+		case "darwin":
+			macPrefix := "/opt/homebrew"
+			if strings.HasPrefix(where, macPrefix) {
+				inst = homebrew
+			}
+		}
 		data = cmdData{
-			found:    true,
-			homebrew: strings.HasPrefix(where, "/opt/homebrew"),
-			command:  cmd.Name,
-			version:  getVersion(cmd),
-			where:    where,
+			command:   cmd.Name,
+			version:   getVersion(cmd),
+			where:     where,
+			installed: inst,
 		}
 	}
 	cmdList = append(cmdList, data)
@@ -107,12 +129,17 @@ func ToTable() {
 		}
 	})
 
+	// We assume that as "nerds" we are installing using the following:
+	// macos: homebrew
+	// windows: scoop
 	var emoji string
 	for _, row := range cmdList {
-		switch {
-		case row.homebrew == true:
+		switch row.installed {
+		case homebrew:
 			emoji = "🍺 "
-		case row.homebrew == false && row.found == true:
+		case scoop:
+			emoji = "🍨 "
+		case other:
 			emoji = "🟢 "
 		default:
 			emoji = "🔴 "
