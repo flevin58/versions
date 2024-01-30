@@ -68,8 +68,6 @@ func Add(cmd cfg.Command) {
 		switch runtime.GOOS {
 		case "windows":
 			winPrefix := os.ExpandEnv("$USERPROFILE\\scoop")
-			fmt.Println(where)
-			fmt.Println(winPrefix)
 			if strings.HasPrefix(where, winPrefix) {
 				inst = scoop
 			}
