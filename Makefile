@@ -1,8 +1,14 @@
+ifeq ($(OS),Windows_NT)
+BINFILE=versions.exe
+else
+BINFILE=versions
+endif
+
 run:
 	@go run .
 
 build:
-	@go build -o bin/versions .
+	@go build -o bin/$(BINFILE) .
 
 test:
 	@go test -v ./...
